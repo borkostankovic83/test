@@ -157,16 +157,5 @@ pipeline {
         }
     }
     
-    post {
-        always {
-            // Cleans the workspace - so Jenkins will run fast and efficiently!
-            cleanWs deleteDirs: true
-        }
-        success {
-            updateGitlabCommitStatus state: 'success'
-        }
-        failure {
-            updateGitlabCommitStatus state: 'failed'
-        }
-    }
+
 }
