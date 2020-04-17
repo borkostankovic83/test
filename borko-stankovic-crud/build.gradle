@@ -1,0 +1,123 @@
+// Alan's Check For Rebase Plugin
+buildscript {
+	repositories {
+		maven {
+			url "${project.ext."NEXUS_URL"}/repository/maven-releases"
+		}
+	}
+	dependencies {
+		classpath 'com.cognizant.cde:gitlab-merge-gradle-plugin:1.0.0'
+	}
+}
+
+plugins {
+	id 'org.springframework.boot' version '2.2.1.RELEASE'
+	id 'io.spring.dependency-management' version '1.0.8.RELEASE'
+	id 'java'
+
+	// PCF
+	id 'com.github.pivotalservices.cf-app' version '2.3.0-rc.6'
+
+	// Sonar Qube
+	id 'jacoco'
+	id "org.sonarqube" version "2.7"
+}
+
+apply plugin: com.cognizant.cde.GitlabMergeVerificationPlugin
+
+// Extensions or Variables to use throughout the build.gradle
+ext {
+	springCloudVersion = 'Hoxton.SR1'
+}
+
+group = 'com.kp'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	// This is a mvn bom to make sure if we have any spring cloud dependencies, choose the ones that work with each other.
+	implementation platform("org.springframework.cloud:spring-cloud-dependencies:${springCloudVersion}")
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+
+	testImplementation('org.springframework.boot:spring-boot-starter-test') {
+		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+	}
+}
+
+// To add SNAPSHOT to your builds if the env is dev.
+if(project.getProperty('ENV') == "DEV") {
+	version += '-SNAPSHOT'
+}
+
+// More of Alan's Plugin to get it working.
+verifyMergeRequest {
+	gitlabUrl = GITLAB_URL
+	gitlabApiToken = API_TOKEN
+	gitlabProjectId = PROJECT_ID
+	gitlabMergeId = MERGE_ID
+}
+
+// Creating a gradlew test command. We do not want to include testing any IT for this.
+test {
+	exclude '**/*IT.class'
+	useJUnitPlatform()
+}
+
+// Creating a gradlew integrationTest command. We do not want to include testing any unit tests for this.
+task integrationTest(type: Test) {
+	exclude '**/*Test.class'
+	useJUnitPlatform()
+}
+
+// Configuring SonarQube properties.
+sonarqube {
+	properties {
+		property "sonar.projectName", project.getProperty(project.getProperty('ENV') + '.AppName')
+		property "sonar.host.url", SONAR_URL
+		property "sonar.jacoco.reportPaths", "${buildDir}/jacoco"
+		// Sonar Coverage Exclusions excludes your files from the coverage.
+		// Change it so your main application file is not included. I added the model folder as an example.
+		property "sonar.coverage.exclusions", "**/KPUserCrudApplication*, **/model/**"
+		// Sonar Exclusions makes it so your files don't exist at all to SonarQube. It's great for models as you will get a "Implement DTO or Simple POJO" error if you don't.
+		// I added model folder for example sake.
+		property "sonar.exclusions", "**/model/**"
+	}
+}
+
+// PWS CF Configurations
+cfConfig{
+	// Variables are from gradle.properties
+	ccHost = project.getProperty('CCHostName')
+	ccUser = project.getProperty('CF_USR')
+	ccPassword = project.getProperty('CF_PSW')
+	org = project.getProperty('CCOrg')
+	space = project.getProperty('CCSpace')
+	name = project.getProperty(project.getProperty('ENV') + '.AppName')
+
+	filePath = "build/libs/" + bootJar.archiveName
+
+	// Configuring for the instances on PWS.
+	path = ""
+	instances = 1;
+	memory = 1024
+	timeout = 180
+
+	// Declaring the cfapp route
+	routes = [project.getProperty(project.getProperty('ENV') + '.CCRoutes')]
+
+	// Changes the profile to use based on the environment
+	def profiles = project.getProperty('ENV').toLowerCase() + ",cloud"
+	environment = ["SPRING_PROFILES_ACTIVE": profiles]
+
+	// Creating a suffix to add it to services depending if it's for dev or not.
+	def suffix = project.getProperty('ENV') == 'DEV' ? '-dev' : ''
+	// services = ['kp-eureka' + suffix, 'kp-auth' + suffix]
+}
+
+// dependsOn makes it so that if you want to do a task, you will have to do something else.
+// In this case, if you want to cf-push, you HAVE to bootJar.
+"cf-push" { dependsOn "bootJar" }

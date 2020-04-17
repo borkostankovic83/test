@@ -1,0 +1,22 @@
+# Anything that goes here is made globally for all profiles.
+spring:
+  application:
+    name: kp-user-crud
+
+---
+# Anything that goes here is made specifically for dev's profile.
+spring:
+  profiles: dev
+
+---
+# Anything that goes here is made specifically for clouds's profile.
+# Cloud is the default profile that Pivotal Cloud Foundry makes your application use if you do not override it.
+spring:
+  profiles: cloud
+
+---
+# Anything that goes here is made specifically for clouds's profile.
+spring:
+  profiles: local, default
+server:
+  port: 8081
