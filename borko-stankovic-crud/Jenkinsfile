@@ -38,7 +38,7 @@ pipeline {
             steps {
                 updateGitlabCommitStatus state: 'running'
                 script {
-                    sh './gradlew clean build -x test'
+                   
                 }
             }
         }
