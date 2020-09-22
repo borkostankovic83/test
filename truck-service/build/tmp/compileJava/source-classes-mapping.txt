@@ -1,0 +1,12 @@
+com/cognizant/truckservice/exception/ResourceNotFoundException.java
+ com.cognizant.truckservice.exception.ResourceNotFoundException
+com/cognizant/truckservice/model/Truck.java
+ com.cognizant.truckservice.model.Truck
+com/cognizant/truckservice/repository/TruckRepository.java
+ com.cognizant.truckservice.repository.TruckRepository
+com/cognizant/truckservice/TruckServiceApplication.java
+ com.cognizant.truckservice.TruckServiceApplication
+com/cognizant/truckservice/sevice/TruckService.java
+ com.cognizant.truckservice.sevice.TruckService
+com/cognizant/truckservice/controller/TruckController.java
+ com.cognizant.truckservice.controller.TruckController

@@ -1,0 +1,8 @@
+com/cognizant/truckservice/TruckServiceApplicationTests.java
+ com.cognizant.truckservice.TruckServiceApplicationTests
+com/cognizant/truckservice/exception/ResourceNotFoundExceptionTest.java
+ com.cognizant.truckservice.exception.ResourceNotFoundExceptionTest
+com/cognizant/truckservice/model/TruckTest.java
+ com.cognizant.truckservice.model.TruckTest
+com/cognizant/truckservice/controller/TruckControllerTest.java
+ com.cognizant.truckservice.controller.TruckControllerTest
